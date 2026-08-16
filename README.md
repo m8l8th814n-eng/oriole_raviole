@@ -1,10 +1,20 @@
 -- STATUS --
 
 ```
+ravioli:~$ sudo dmesg|grep brcm
+[    1.834257] udevd[164]: ctx=0xffffadf3cc70 path=/lib/modules/7.2.0-rc3/kernel/drivers/net/wireless/broadcom/brcm80211/brcmutil/brcmutil.ko error=No such file or directory
+[   15.232585] usbcore: registered new interface driver brcmfmac
+[   15.232745] brcmfmac 0001:01:00.0: enabling device (0000 -> 0002)
+[   15.343048] brcmfmac 0001:01:00.0: brcmf_pcie_probe: failed to parse OTP
+[   15.343058] brcmfmac: brcmf_pcie_probe: failed 14e4:4441
+[   15.343080] brcmfmac 0001:01:00.0: probe with driver brcmfmac failed with error -22
+```
+```
+ravioli:~$ lspci -k
 0000:00:00.0 PCI bridge: Samsung Electronics Co Ltd Device a5a5 (rev 01)
 0001:00:00.0 PCI bridge: Samsung Electronics Co Ltd Device a5a5 (rev 01)
 0001:01:00.0 Network controller: Broadcom Inc. and subsidiaries Device 4441 (rev 03)
-
+	Subsystem: Broadcom Inc. and subsidiaries Device 4389
 ```
 
 ```
