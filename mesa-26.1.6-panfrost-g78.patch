@@ -1,0 +1,26 @@
+Subject: [PATCH] panfrost: Advertise Mali-G78 support
+
+Mali-G78 is a Valhall v9 GPU, similar enough to G57 to work without changes.
+Tested on Google Tensor (gs101) in a Pixel 6, which contains Mali-G78 MP20
+r0p1 (shader_present=0x779fff).
+
+The kernel reports GPU_PROD_ID 0x9202. Decoded with the field macros in
+pan_model.h that is arch_major 9, arch_minor 2, product_major 2, giving
+PAN_PROD_ID(9, 2, 2). The same decoding reproduces the existing G57 entries
+from their kernel IDs 0x9001 and 0x9003, and matches G68 at (9, 2, 4), which
+is the same Valhall v9 family and differs only in product_major.
+
+Tile buffer sizes and rates are taken from G57, as was done for G68.
+TBOx is the performance counter set for this GPU (src/panfrost/perf/G78.xml).
+
+--- a/src/panfrost/model/pan_model.c
++++ b/src/panfrost/model/pan_model.c
+@@ -78,6 +78,8 @@
+                                               MODEL_RATES(2, 4,  32)),
+    VALHALL_MODEL(PAN_PROD_ID(9, 0, 3), 0, "G57",    "TNAx", MODEL_ANISO(ALL),  MODEL_TB_SIZES(16384,  8192),
+                                               MODEL_RATES(2, 4,  32)),
++   VALHALL_MODEL(PAN_PROD_ID(9, 2, 2), 0, "G78",    "TBOx", MODEL_ANISO(ALL),  MODEL_TB_SIZES(16384,  8192),
++                                              MODEL_RATES(2, 4,  32)),
+    VALHALL_MODEL(PAN_PROD_ID(10, 8, 7), 0, "G610",   "TVIx", MODEL_ANISO(ALL),  MODEL_TB_SIZES(32768, 16384),
+                                               MODEL_RATES(4, 8,  64)),
+    VALHALL_MODEL(PAN_PROD_ID(10, 12, 4), 0, "G310v1",   "TVAx", MODEL_ANISO(ALL),  MODEL_TB_SIZES(16384,  8192),
