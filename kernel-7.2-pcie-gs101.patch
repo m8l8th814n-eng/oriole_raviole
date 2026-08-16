@@ -18,22 +18,49 @@ aggregation engine used to work around CDR lock, Q-channel power
 management, link recovery and instrumentation. None of it is needed to
 train a link.
 
+diff --git a/arch/arm64/boot/dts/exynos/google/gs101-pixel-common.dtsi b/arch/arm64/boot/dts/exynos/google/gs101-pixel-common.dtsi
+index 26d848934b87..74761ca99c65 100644
+--- a/arch/arm64/boot/dts/exynos/google/gs101-pixel-common.dtsi
++++ b/arch/arm64/boot/dts/exynos/google/gs101-pixel-common.dtsi
+@@ -93,6 +93,20 @@ ufs_0_fixed_vcc_reg: regulator-1 {
+ 		enable-active-high;
+ 	};
+ 
++	/*
++	 * WLAN power enable (BCM4389 on PCIe HSI2). The vendor "wl_reg_on"
++	 * GPIO; drive it on so the endpoint is powered before the PCIe link
++	 * trains. always-on because there is no bcmdhd driver to toggle it.
++	 */
++	wlan_pwrseq: regulator-wlan {
++		compatible = "regulator-fixed";
++		regulator-name = "wlan-en";
++		gpio = <&gpp14 2 GPIO_ACTIVE_HIGH>;
++		enable-active-high;
++		regulator-always-on;
++		regulator-boot-on;
++	};
++
+ 	reserved-memory {
+ 		cont_splash_mem: splash@fac00000 {
+ 			/* size to be updated by actual board */
 diff --git a/arch/arm64/boot/dts/exynos/google/gs101.dtsi b/arch/arm64/boot/dts/exynos/google/gs101.dtsi
-index 620d1b904ba5..752d043eb22b 100644
+index 620d1b904ba5..b159cf9d0114 100644
 --- a/arch/arm64/boot/dts/exynos/google/gs101.dtsi
 +++ b/arch/arm64/boot/dts/exynos/google/gs101.dtsi
-@@ -569,7 +569,9 @@ soc: soc@0 {
+@@ -569,7 +569,11 @@ soc: soc@0 {
  		compatible = "simple-bus";
  		#address-cells = <1>;
  		#size-cells = <1>;
 -		ranges = <0x0 0x0 0x0 0x40000000>;
 +		ranges = <0x0 0x0 0x0 0x40000000>,
 +			 /* PCIe Gen4A outbound + config window (HSI1) */
-+			 <0x40000000 0x0 0x40000000 0x01000000>;
++			 <0x40000000 0x0 0x40000000 0x01000000>,
++			 /* PCIe Gen4A outbound + config window (HSI2) */
++			 <0x60000000 0x0 0x60000000 0x01000000>;
  
  		efuse@10000000 {
  			compatible = "google,gs101-otp";
-@@ -1648,6 +1650,76 @@ pinctrl_hsi1: pinctrl@11840000 {
+@@ -1648,6 +1652,130 @@ pinctrl_hsi1: pinctrl@11840000 {
  			interrupts = <GIC_SPI 471 IRQ_TYPE_LEVEL_HIGH 0>;
  		};
  
@@ -104,6 +131,60 @@ index 620d1b904ba5..752d043eb22b 100644
 +			pinctrl-0 = <&pcie0_clkreq>, <&pcie0_perst>;
 +			samsung,pmu-syscon = <&pmu_system_controller>;
 +			samsung,pmu-offset = <0x3ec0>;
++			status = "okay";
++		};
++
++		pcie_phy1: phy@14550000 {
++			compatible = "google,gs101-pcie-phy";
++			reg = <0x14550000 0x2000>,
++			      <0x14540000 0x1000>,
++			      <0x14520000 0x2000>;
++			reg-names = "phy", "pcs", "elbi";
++			clocks = <&cmu_hsi2 CLK_GOUT_HSI2_PCIE_GEN4_1_PCS_PMA_PIPE_PAL_PCIE_I_APB_PCLK>,
++				 <&cmu_hsi2 CLK_GOUT_HSI2_PCIE_GEN4_1_PCS_PMA_PCIEPHY210X2_QCH_I_APB_PCLK>,
++				 <&cmu_hsi2 CLK_GOUT_HSI2_PCIE_GEN4_1_PCS_PMA_PHY_UDBG_I_APB_PCLK>,
++				 <&cmu_hsi2 CLK_GOUT_HSI2_PCIE_GEN4_1_PCIE_003_PHY_REFCLK_IN>;
++			clock-names = "pipe_pal", "qch_tm", "udbg", "refclk";
++			num-lanes = <2>;
++			#phy-cells = <0>;
++			status = "okay";
++		};
++
++		pcie1: pcie@14520000 {
++			compatible = "google,gs101-pcie";
++			reg = <0x14520000 0x2000>,
++			      <0x14800000 0x301000>,
++			      <0x60ffe000 0x2000>;
++			reg-names = "elbi", "dbi", "config";
++			device_type = "pci";
++			#address-cells = <3>;
++			#size-cells = <2>;
++			ranges = <0x82000000 0 0x60000000 0x60000000 0 0x00ff0000>;
++			bus-range = <0x00 0xff>;
++			num-lanes = <2>;
++			max-link-speed = <3>;
++			interrupts = <GIC_SPI 473 IRQ_TYPE_LEVEL_HIGH 0>;
++			interrupt-names = "msi";
++			clocks = <&cmu_hsi2 CLK_GOUT_HSI2_PCIE_GEN4_1_PCIE_003_DBI_ACLK_UG>,
++				 <&cmu_hsi2 CLK_GOUT_HSI2_PCIE_GEN4_1_PCIE_003_MSTR_ACLK_UG>,
++				 <&cmu_hsi2 CLK_GOUT_HSI2_PCIE_GEN4_1_PCIE_003_SLV_ACLK_UG>,
++				 <&cmu_hsi2 CLK_GOUT_HSI2_PCIE_GEN4_1_PCIE_003_I_DRIVER_APB_CLK>,
++				 <&cmu_hsi2 CLK_GOUT_HSI2_PCIE_IA_GEN4A_1_I_CLK>,
++				 <&cmu_hsi2 CLK_GOUT_HSI2_UASC_PCIE_GEN4A_DBI_1_ACLK>,
++				 <&cmu_hsi2 CLK_GOUT_HSI2_UASC_PCIE_GEN4A_DBI_1_PCLK>,
++				 <&cmu_hsi2 CLK_GOUT_HSI2_UASC_PCIE_GEN4A_SLV_1_ACLK>,
++				 <&cmu_hsi2 CLK_GOUT_HSI2_UASC_PCIE_GEN4A_SLV_1_PCLK>;
++			clock-names = "dbi", "mstr", "slv", "driver_apb", "ia",
++				      "uasc_dbi_aclk", "uasc_dbi_pclk",
++				      "uasc_slv_aclk", "uasc_slv_pclk";
++			phys = <&pcie_phy1>;
++			phy-names = "pcie";
++			reset-gpios = <&gph2 0 GPIO_ACTIVE_LOW>;
++			vpcie-supply = <&wlan_pwrseq>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&pcie1_clkreq>, <&pcie1_perst>;
++			samsung,pmu-syscon = <&pmu_system_controller>;
++			samsung,pmu-offset = <0x3ec4>;
 +			status = "okay";
 +		};
 +

@@ -1,5 +1,5 @@
 -- STATUS --
-```
+
 [    0.000000] Booting Linux on physical CPU 0x0000000000 [0x412fd050]
 [    0.000000] Linux version 7.2.0-rc3 (root@SANITIZED) (Alpine clang version 22.1.8, LLD 22.1.8) #4 SMP PREEMPT Sun Aug 16 17:10:49 UTC 2026
 [    0.000000] KASLR enabled
@@ -376,7 +376,7 @@
 [    1.427662]     HOME=/
 [    1.427663]     TERM=linux
 [    1.427664]     pmos_boot_uuid=07a11b2f-501c-48ed-a49d-fb256862e42d
-[    1.427665]     pmos_roofort_uuid=f7ea2277-ff76-4a89-9df7-ca7a1354460a
+[    1.427665]     pmos_root_uuid=f7ea2277-ff76-4a89-9df7-ca7a1354460a
 [    1.427666]     pmos_rootfsopts=defaults
 [    1.453059] syslogd started: BusyBox v1.38.0
 [    1.454430] [pmOS-rd]:   ❬❬ PMOS STAGE 1 ❭❭
@@ -724,4 +724,3 @@
 [   24.515042] panfrost 1c500000.gpu: js fault, js=1, status=DATA_INVALID_FAULT, head=0xaded400, tail=0xaded400
 [   24.515113] panfrost 1c500000.gpu: js fault, js=0, status=DATA_INVALID_FAULT, head=0xaded800, tail=0xaded800
 [   24.516669] panfrost 1c500000.gpu: js fault, js=1, status=DATA_INVALID_FAULT, head=0xadde280, tail=0xadde280
-```
