@@ -1,4 +1,6 @@
--- STATUS --
+## BCMDHD PORT, if you are looking for a working wifi solution on pmos: https://github.com/m8l8th814n-eng/raviole_bcmd_postmarketos
+
+# STATUS FOR THIS PROJECT:
 
 ```
 ravioli:~$ sudo dmesg|grep brcm
